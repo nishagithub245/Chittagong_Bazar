@@ -1,7 +1,8 @@
 body {
   font-family: Arial, sans-serif;
-  padding:30px;
-  background-color: #f4f4f4;
+  padding: 30px;
+  background-color: white;
+  display: flex;
   justify-content: center;
 }
 
@@ -13,12 +14,9 @@ body {
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
   width: 95%;
-  height: 500px;
-  align-items:flex-start;
- 
- 
+  height: auto;
+  align-items: flex-start;
 }
-
 
 .left-panel {
   display: flex;
@@ -26,28 +24,30 @@ body {
   align-items: center;
 }
 
-
-
 .image-area {
   position: relative;
+  width: 300px;
+  height: 300px; /* fix height for proper crop alignment */
 }
 
 .image-area img {
-  width: 300px;
+  width: 100%;
+  height: 100%; /* maintain consistent dimensions */
   display: block;
   border: 1px solid #ccc;
+  object-fit: contain;
+  transform-origin: center center;
 }
 
 /* Dashed selection box */
 .crop-box {
   position: absolute;
- top: 80px; left: 60px; width: 90px; height: 120px;
   border: 2px dashed black;
   pointer-events: none;
+  box-sizing: border-box;
 }
 
-
-
+/* Thumbnail preview */
 .thumbnail-preview {
   margin-top: 15px;
   text-align: left;
@@ -70,12 +70,7 @@ body {
   pointer-events: none;
 }
 
-
-
-
-
-
-
+/* Form controls */
 .controls {
   display: flex;
   flex-direction: column;
@@ -94,8 +89,6 @@ input[type="number"] {
   font-size: 14px;
 }
 
-
-
 button {
   padding: 8px 10px;
   font-size: 14px;
@@ -113,4 +106,10 @@ button:hover {
   margin-top: 5px;
 }
 
-
+/* Force crop box to be square and inside image boundaries */
+.crop-box {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}

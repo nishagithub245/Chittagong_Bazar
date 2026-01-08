@@ -1,7 +1,27 @@
 <?php
 include 'db_connection.php';
 
+// Fetch the last saved crop and orientation from DB
+$sql = "SELECT * FROM croppedimage ORDER BY id DESC LIMIT 1";
+$result = $conn->query($sql);
 
+
+
+if ($result && $result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $x1 = $row['x1'];
+    $x2 = $row['x2'];
+    $y1 = $row['y1'];
+    $y2 = $row['y2'];
+    $imageorientation = $row['imageorientation']; 
+} else {
+    // Defaults
+    $x1 = 50;
+    $x2 = 150;
+    $y1 = 50;
+    $y2 = 150;
+    $imageorientation = 1;
+}
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -11,40 +31,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $y2 = intval($_POST['y2']);
     $imageorientation = intval($_POST['imageorientation']);
 
-    
-     // Always insert a new row
     $sql = "INSERT INTO croppedimage (x1, x2, y1, y2, imageorientation)
             VALUES ($x1, $x2, $y1, $y2, $imageorientation)";
 
-    if ($conn->query($sql) === TRUE) {
-        
-        // echo "New record created successfully";
-    } else {
+    if ($conn->query($sql) !== TRUE) {
         echo "Error: " . $conn->error;
     }
 
-
-    //Redirect to prevent form resubmission on refresh
+    // Redirect to prevent form resubmission
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
 
 
 
- 
+
+
+
+
+
+
+
+// Convert orientation to rotation degrees for JS
+$rotationDegrees = 0;
 ?>
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chittagong Bazaar - Image Crop & Rotate</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chittagong Bazaar - Image Crop & Rotate</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
- <div class="container">
+<div class="container">
 
   <div class="left-panel">
     <div class="image-area">
@@ -86,18 +120,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <button type="button" id="rotateRight">Rotate clockwise</button>
     </div>
 
-    <input type="hidden" name="imageorientation" id="imageorientation" value="1">
-
+    <input type="hidden" name="imageorientation" id="imageorientation" value="<?php echo $imageorientation; ?>">
 
     <button type="submit" class="submit-btn">Submit changes</button>
   </form>
 
 </div>
 
+<script>
+// Pass PHP rotation value to JS
+let initialRotation = <?php echo $rotationDegrees; ?>;
+</script>
+<script src="script.js"></script>
 
-
-  <script src="script.js"></script>
-
- 
 </body>
 </html>

@@ -1,0 +1,213 @@
+// $(document).ready(function () {
+//     const cropBox = $('#cropBox');
+//     const image = $('#utensil-img');
+//     const thumb = $('#thumbImage');
+//     const orientationInput = $('#imageorientation');
+//     const frame = image.parent();
+
+//    let state = {
+//         x1: parseInt($('#x1').val()),
+//         x2: parseInt($('#x2').val()),
+//         y1: parseInt($('#y1').val()),
+//         y2: parseInt($('#y2').val())
+//     };
+
+//     let rotation = 0;
+
+//     const naturalWidth = image[0].naturalWidth;
+//     const naturalHeight = image[0].naturalHeight;
+
+//     //  Frame setup
+//     frame.css({
+//         position: 'relative',
+//         width: naturalWidth + 'px',
+//         height: naturalHeight + 'px',
+//         overflow: 'hidden'
+//     });
+
+//     // --- Apply rotation ---
+//     function applyRotation() {
+//         let displayWidth = naturalWidth;
+//         let displayHeight = naturalHeight;
+
+//         if (rotation === 90 || rotation === 270) {
+//             [displayWidth, displayHeight] = [naturalHeight, naturalWidth];
+//         }
+
+//         image.css({
+//             position: 'absolute',
+//             top: '50%',
+//             left: '50%',
+//             width: displayWidth + 'px',
+//             height: displayHeight + 'px',
+//             transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+//             transformOrigin: 'center center'
+//         });
+//     }
+
+//     // --- Ensure crop stays within image & square ---
+//     function enforceSquareAndClamp(changedField) {
+//         let { x1, x2, y1, y2 } = state;
+
+//         // Ensure correct order
+//         if (x2 < x1) [x1, x2] = [x2, x1];
+//         if (y2 < y1) [y1, y2] = [y2, y1];
+
+//         let width = x2 - x1;
+//         let height = y2 - y1;
+
+//         // Determine the side length (square)
+//         let side = Math.min(width, height);
+
+//         // If user changed X values — adapt Y accordingly
+//         if (changedField === 'x1' || changedField === 'x2') {
+//             // Maintain square by adjusting y2 based on y1
+//             y2 = y1 + side;
+//         }
+
+//         // If user changed Y values — adapt X accordingly
+//         if (changedField === 'y1' || changedField === 'y2') {
+//             // Maintain square by adjusting x2 based on x1
+//             x2 = x1 + side;
+//         }
+
+//         // Clamp within image bounds
+//         if (x1 < 0) { x2 -= x1; x1 = 0; }
+//         if (y1 < 0) { y2 -= y1; y1 = 0; }
+//         if (x2 > naturalWidth) {
+//             const overflow = x2 - naturalWidth;
+//             x1 -= overflow;
+//             x2 = naturalWidth;
+//         }
+//         if (y2 > naturalHeight) {
+//             const overflow = y2 - naturalHeight;
+//             y1 -= overflow;
+//             y2 = naturalHeight;
+//         }
+
+//         // Recalculate square if clamped moved one side
+//         width = x2 - x1;
+//         height = y2 - y1;
+//         side = Math.min(width, height);
+//         x2 = x1 + side;
+//         y2 = y1 + side;
+
+//         // Save and update inputs
+//         state = { x1, x2, y1, y2 };
+//         $('#x1').val(Math.round(x1));
+//         $('#x2').val(Math.round(x2));
+//         $('#y1').val(Math.round(y1));
+//         $('#y2').val(Math.round(y2));
+//     }
+
+//     // --- Update crop box display ---
+//     function updateCropBox() {
+//         enforceSquareAndClamp();
+//         const width = state.x2 - state.x1;
+//         const height = state.y2 - state.y1;
+
+//         cropBox.css({
+//             position: 'absolute',
+//             left: state.x1 + 'px',
+//             top: state.y1 + 'px',
+//             width: width + 'px',
+//             height: height + 'px',
+//             border: '2px dashed #000',
+//             transform: 'none'
+//         });
+
+//         updateThumbnail(width, height);
+//     }
+
+//     // --- Thumbnail update (keeps rotation behavior) ---
+//     function updateThumbnail(width, height) {
+//         const imgW = naturalWidth;
+//         const imgH = naturalHeight;
+//         const scale = 60 / Math.min(width, height);
+
+//         let thumbLeft = 0, thumbTop = 0;
+
+//         switch (rotation % 360) {
+//             case 0:
+//                 thumbLeft = -state.x1 * scale;
+//                 thumbTop = -state.y1 * scale;
+//                 break;
+//             case 90:
+//                 thumbLeft = -state.y1 * scale;
+//                 thumbTop = -(imgW - state.x2) * scale;
+//                 break;
+//             case 180:
+//                 thumbLeft = -(imgW - state.x2) * scale;
+//                 thumbTop = -(imgH - state.y2) * scale;
+//                 break;
+//             case 270:
+//                 thumbLeft = -(imgH - state.y2) * scale;
+//                 thumbTop = -state.x1 * scale;
+//                 break;
+//         }
+
+//         thumb.css({
+//             width: imgW * scale + 'px',
+//             height: imgH * scale + 'px',
+//             left: thumbLeft + 'px',
+//             top: thumbTop + 'px',
+//             transform: `rotate(${rotation}deg) scale(${scale})`,
+//             transformOrigin: 'center center'
+//         });
+//     }
+
+//     // --- Orientation field ---
+//     function updateOrientationInput() {
+//         let val = 1;
+//         if (rotation === 90) val = 2;
+//         else if (rotation === 180) val = 3;
+//         else if (rotation === 270) val = 4;
+//         orientationInput.val(val);
+//     }
+
+//     // --- Rotate functions ---
+//     function rotateImage(delta) {
+//         rotation = (rotation + delta + 360) % 360;
+//         applyRotation();
+//         updateOrientationInput();
+//         updateCropBox();
+//         rotateThumbnailFrame(rotation);
+//     }
+
+//     // --- Rotate thumbnail visually ---
+//     function rotateThumbnailFrame(angle) {
+//         $('.thumb-box').css({
+//             transform: `rotate(${angle}deg)`,
+//             transformOrigin: 'center center',
+//             transition: 'transform 0.3s ease'
+//         });
+//     }
+
+
+//     // --- Input listeners (force square behavior) ---
+//     $('#x1, #x2, #y1, #y2').on('input', function () {
+//         const id = $(this).attr('id');
+//         const val = parseInt($(this).val());
+//         if (!isNaN(val)) {
+//             state[id] = val;
+//             enforceSquareAndClamp(id); // keep it square
+//             updateCropBox();
+//         }
+//     });
+//  // --- Input changes ---
+//     $('#x1, #x2, #y1, #y2').on('input', function () {
+//         const val = parseInt(this.value);
+//         if (!isNaN(val)) {
+//             state[this.id] = val;
+//             updateCropBox();
+//         }
+//     });
+
+//     $('#rotateLeft').click(() => rotateImage(-90));
+//     $('#rotateRight').click(() => rotateImage(90));
+
+//     // --- Initialize ---
+//     applyRotation();
+//     updateCropBox();
+//     updateOrientationInput();
+// });

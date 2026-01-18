@@ -44,27 +44,37 @@ $(document).ready(function () {
 
     /* ---------------- CLAMP ---------------- */
 
-    function clampValues() {
-        let side = Math.abs(state.x2 - state.x1);
+  function clampValues() {
+    let side = Math.abs(state.x2 - state.x1);
 
-        if (state.x1 < 0) {
-            state.x1 = 0;
-            state.x2 = side;
-        }
-        if (state.y1 < 0) {
-            state.y1 = 0;
-            state.y2 = side;
-        }
+    // If side is bigger than the image itself, shrink it
+    const maxSide = Math.min(imgWidth, imgHeight);
+    if (side > maxSide) side = maxSide;
 
-        if (state.x2 > imgWidth) {
-            state.x2 = imgWidth;
-            state.x1 = imgWidth - side;
-        }
-        if (state.y2 > imgHeight) {
-            state.y2 = imgHeight;
-            state.y1 = imgHeight - side;
-        }
+    // Clamp x within range
+    if (state.x1 < 0) {
+        state.x1 = 0;
+        state.x2 = side;
+    } else if (state.x2 > imgWidth) {
+        state.x2 = imgWidth;
+        state.x1 = imgWidth - side;
     }
+
+    // Clamp y within range
+    if (state.y1 < 0) {
+        state.y1 = 0;
+        state.y2 = side;
+    } else if (state.y2 > imgHeight) {
+        state.y2 = imgHeight;
+        state.y1 = imgHeight - side;
+    }
+
+    // Ensure square stays inside even if resized
+    state.x1 = Math.max(0, Math.min(state.x1, imgWidth - side));
+    state.x2 = state.x1 + side;
+    state.y1 = Math.max(0, Math.min(state.y1, imgHeight - side));
+    state.y2 = state.y1 + side;
+}
 
     /* ---------------- SQUARE ENFORCEMENT ---------------- */
 
@@ -104,7 +114,7 @@ $(document).ready(function () {
     });
 
     /* --- Thumbnail --- */
-    /* --- Thumbnail (NO blank on rotate) --- */
+  
 
 const thumbSize = 60;
 const scale = thumbSize / side;
@@ -134,14 +144,16 @@ $('.thumb-box').css({
 
     /* ---------------- INPUT HANDLING ---------------- */
 
-    $('#x1, #x2, #y1, #y2').on('input', function () {
-        const val = parseInt(this.value);
-        if (isNaN(val)) return;
+  $('#x1, #x2, #y1, #y2').on('input', function () {
+    const val = parseInt(this.value);
+    if (isNaN(val)) return;
 
-        state[this.id] = val;
-        enforceSquare(this.id);
-        updateCropBox();
-    });
+    state[this.id] = val;
+    enforceSquare(this.id);
+    clampValues();      
+    updateCropBox();
+});
+
 
     /* ---------------- ROTATION ---------------- */
 

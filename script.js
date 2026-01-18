@@ -85,48 +85,52 @@ $(document).ready(function () {
     }
 
     /* ---------------- CORE RENDER ---------------- */
-    let normalizedRotation = ((rotation % 360) + 360) % 360;
+   function updateCropBox() {
 
-    function updateCropBox() {
+    if ([state.x1, state.x2, state.y1, state.y2].some(isNaN)) return;
 
-        if ([state.x1, state.x2, state.y1, state.y2].some(isNaN)) return;
+    const normalizedRotation = ((rotation % 360) + 360) % 360;
 
-        let x1 = Math.min(state.x1, state.x2);
-        let y1 = Math.min(state.y1, state.y2);
-        let side = Math.abs(state.x2 - state.x1);
+    let x1 = Math.min(state.x1, state.x2);
+    let y1 = Math.min(state.y1, state.y2);
+    let side = Math.abs(state.x2 - state.x1);
 
-        /* --- Crop box --- */
-        cropBox.css({
-            width: side + 'px',
-            height: side + 'px',
-            left: x1 + 'px',
-            top: y1 + 'px'
-        });
+    /* --- Crop box --- */
+    cropBox.css({
+        width: side + 'px',
+        height: side + 'px',
+        left: x1 + 'px',
+        top: y1 + 'px'
+    });
 
-        /* --- Thumbnail --- */
-       const thumbSize = 60;
-       let scale = thumbSize / side;
+    /* --- Thumbnail --- */
+    /* --- Thumbnail (NO blank on rotate) --- */
 
-// Apply bounding-box compensation ONLY for 90 / 270
-let extraScale = (normalizedRotation === 90 || normalizedRotation === 270)
-    ? Math.SQRT2
-    : 1;
+const thumbSize = 60;
+const scale = thumbSize / side;
 
+// position thumbnail image normally (NO rotation here)
 thumb.css({
     width: imgWidth * scale + 'px',
     height: imgHeight * scale + 'px',
     left: (-x1 * scale) + 'px',
     top: (-y1 * scale) + 'px',
-    transform: `rotate(${normalizedRotation}deg) scale(${extraScale})`,
+    transform: 'none'
+});
+
+// rotate the thumbnail CONTAINER instead
+$('.thumb-box').css({
+    transform: `rotate(${rotation}deg)`,
     transformOrigin: 'center center'
 });
 
-        /* --- Sync inputs --- */
-        $('#x1').val(state.x1);
-        $('#x2').val(state.x2);
-        $('#y1').val(state.y1);
-        $('#y2').val(state.y2);
-    }
+    /* --- Sync inputs --- */
+    $('#x1').val(state.x1);
+    $('#x2').val(state.x2);
+    $('#y1').val(state.y1);
+    $('#y2').val(state.y2);
+}
+
 
     /* ---------------- INPUT HANDLING ---------------- */
 
@@ -177,5 +181,4 @@ thumb.css({
     if (imgTag[0].complete) imgTag.trigger('load');
 
 });
-
 
